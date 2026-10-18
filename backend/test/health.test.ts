@@ -34,11 +34,26 @@ describe('Health and Infrastructure Endpoints', () => {
     expect(res.body.error.message).toMatch(/^ERROR —/);
   });
 
-  it('GET /admin without X-Orwickle-Admin header returns 403 Forbidden with ERROR — prefix', async () => {
-    const res = await request(app).get('/admin');
+  it('Cookie-authenticated web request to /admin without X-Orwickle-Admin returns 403 Forbidden with ERROR — prefix', async () => {
+    const res = await request(app)
+      .get('/admin')
+      .set('Cookie', ['refreshToken=test_token'])
+      .set('Origin', 'http://localhost:5173');
+
     expect(res.status).toBe(403);
     expect(res.body).toHaveProperty('success', false);
     expect(res.body.error).toHaveProperty('code', 'ADMIN_HEADER_REQUIRED');
     expect(res.body.error.message).toMatch(/^ERROR —/);
+  });
+
+  it('Cookie-authenticated web request with valid X-Orwickle-Admin header passes adminHeaderCheck', async () => {
+    const res = await request(app)
+      .get('/admin')
+      .set('Cookie', ['refreshToken=test_token'])
+      .set('Origin', 'http://localhost:5173')
+      .set('X-Orwickle-Admin', '1');
+
+    // Passes security middleware, reaching 404 (since /admin route handler is scheduled for P7)
+    expect(res.status).toBe(404);
   });
 });

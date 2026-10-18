@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- Orwickle Initial Schema: Core Identity, Profiles, Sessions, & Auditing
--- Migration: 001_initial_schema.sql (v1.2)
+-- Migration: 001_initial_schema.sql (v1.3)
 -- ==============================================================================
 
 -- 1. Enable Cryptographic UUID Generator Extension
@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(32) NOT NULL CHECK (role IN ('owner', 'investor', 'buyer', 'admin')),
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    is_verified BOOLEAN NOT NULL DEFAULT false,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending_verification' CHECK (status IN ('pending_verification', 'active', 'suspended')),
+    email_verified_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -21,8 +21,9 @@ CREATE TABLE IF NOT EXISTS users (
 -- Case-insensitive unique constraint on email
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower ON users (LOWER(email));
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
+CREATE INDEX IF NOT EXISTS idx_users_status ON users (status);
 
--- 3. Profiles Table (Public Preview & Role-Specific Metadata)
+-- 3. Profiles Table (Public Identity & Role-Specific Metadata)
 CREATE TABLE IF NOT EXISTS profiles (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     display_name VARCHAR(150) NOT NULL,
@@ -30,18 +31,12 @@ CREATE TABLE IF NOT EXISTS profiles (
     bio TEXT,
     avatar_url TEXT,
     role_data JSONB NOT NULL DEFAULT '{}'::jsonb,
-    review_status VARCHAR(32) NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending', 'approved', 'rejected', 'action_required')),
-    reviewer_notes TEXT,
-    reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    reviewed_at TIMESTAMPTZ,
     completed_deals_count INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_profiles_review_status ON profiles (review_status);
-
--- 4. Active Sessions Table (Dual Token & Refresh Rotation with 10s Grace Window)
+-- 4. Active Sessions Table (Dual Token & Refresh Rotation with 10s Child-Issuing Window)
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -58,6 +53,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_family_id ON sessions (family_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_family_revoked ON sessions (family_id, is_revoked);
 CREATE INDEX IF NOT EXISTS idx_sessions_refresh_hash ON sessions (refresh_token_hash);
 CREATE INDEX IF NOT EXISTS idx_sessions_active_lookup ON sessions (id, is_revoked);
 

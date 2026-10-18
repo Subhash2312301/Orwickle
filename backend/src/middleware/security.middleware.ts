@@ -22,7 +22,7 @@ const allowedOrigins = [
 
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
-    // Mobile apps and CLI/curl test clients may not send an Origin header
+    // Native mobile apps and curl/postman clients send no Origin header
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
@@ -43,29 +43,33 @@ export const corsMiddleware = cors({
 });
 
 /**
- * Universal Origin and Custom Header check for Administrative endpoints (ADR-014)
- * Enforced in EVERY environment (development, staging, production).
+ * Selective Origin and Custom Header check for Cookie-Authenticated Web Requests (ADR-014)
+ * Applied ONLY to cookie-authenticated web requests targeting administrative endpoints.
+ * Native mobile requests (bearer token, no cookies, no Origin) are not blocked.
  */
 export function adminHeaderCheck(req: Request, res: Response, next: NextFunction): void {
+  const isWebCookieRequest =
+    Boolean(req.cookies && Object.keys(req.cookies).length > 0) ||
+    Boolean(req.headers['origin']);
+
   const isAdminRoute =
     req.path.startsWith('/admin') ||
     req.path.startsWith('/api/v1/admin') ||
     req.path.startsWith('/api/v1/auth/admin');
 
-  if (isAdminRoute) {
+  if (isAdminRoute && isWebCookieRequest) {
     const adminHeader = req.headers['x-orwickle-admin'];
     if (adminHeader !== '1') {
       res.status(403).json({
         success: false,
         error: {
           code: 'ADMIN_HEADER_REQUIRED',
-          message: 'ERROR — Administrative requests require explicit X-Orwickle-Admin: 1 header verification.',
+          message: 'ERROR — Web administrative requests require explicit X-Orwickle-Admin: 1 header verification.',
         },
       });
       return;
     }
 
-    // Origin verification when Origin is present
     const origin = req.headers['origin'];
     if (origin && !allowedOrigins.includes(origin)) {
       res.status(403).json({
