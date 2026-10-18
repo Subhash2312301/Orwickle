@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Orwickle — Role Designation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #F3EFE6;
+      color: #14110F;
+      font-family: 'Schibsted Grotesk', -apple-system, sans-serif;
+      padding: 24px 20px;
+      min-height: 844px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .mono-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #5B554C;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .headline-serif {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 34px;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.3px;
+      color: #14110F;
+      margin-bottom: 10px;
+    }
+    .headline-serif em { font-style: italic; }
+    .body-desc {
+      font-family: 'Schibsted Grotesk', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #5B554C;
+      margin-bottom: 24px;
+    }
+    .roles-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .dossier-card {
+      background: #FBF9F4;
+      border: 1px solid #5B554C;
+      border-radius: 2px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-height: 48px;
+    }
+    .dossier-card.selected {
+      border: 2px solid #D9381E;
+      padding: 15px;
+    }
+    .card-seal {
+      width: 44px;
+      height: 44px;
+      border: 1px solid #5B554C;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #14110F;
+      flex-shrink: 0;
+    }
+    .dossier-card.selected .card-seal {
+      border-color: #D9381E;
+      color: #D9381E;
+    }
+    .card-info { flex: 1; }
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .card-title {
+      font-family: 'Schibsted Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: #14110F;
+    }
+    .card-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #5B554C;
+    }
+    .card-text {
+      font-size: 12px;
+      line-height: 1.4;
+      color: #5B554C;
+    }
+    .card-radio {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid #5B554C;
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .dossier-card.selected .card-radio {
+      border-color: #D9381E;
+    }
+    .dossier-card.selected .card-radio::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 9px;
+      height: 9px;
+      background: #D9381E;
+      border-radius: 50%;
+    }
+    .perforated-rule {
+      height: 1px;
+      border-top: 1px dashed #D9D2C3;
+      margin: 20px 0;
+    }
+    .primary-cta-btn {
+      width: 100%;
+      min-height: 48px;
+      background-color: #D9381E;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 2px;
+      font-family: 'Schibsted Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .compliance-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 14px;
+    }
+    .mono-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #5B554C;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="mono-meta">
+      <span>01 / DESIGNATION</span>
+      <span>STAGE: ONBOARDING</span>
+    </div>
+    <h1 class="headline-serif">Select your <em>institutional</em> designation.</h1>
+    <p class="body-desc">
+      Your role governs dealroom clearance, memorandum access, escrow authorization, and transactional legal rights.
+    </p>
+
+    <div class="roles-grid">
+      <!-- Student / Founder Card (Selected) -->
+      <div class="dossier-card selected">
+        <div class="card-seal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="card-info">
+          <div class="card-head">
+            <span class="card-title">Founder / Student</span>
+            <span class="card-tag">[ISSUER]</span>
+          </div>
+          <p class="card-text">List verified academic capstones, issue confidential memoranda, receive term sheet offers.</p>
+        </div>
+        <div class="card-radio"></div>
+      </div>
+
+      <!-- Investor Card -->
+      <div class="dossier-card">
+        <div class="card-seal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+        </div>
+        <div class="card-info">
+          <div class="card-head">
+            <span class="card-title">Accredited Investor</span>
+            <span class="card-tag">[CAPITAL]</span>
+          </div>
+          <p class="card-text">Audit evaluated IP portfolios, deploy early-stage capital, tender binding convertible notes.</p>
+        </div>
+        <div class="card-radio"></div>
+      </div>
+
+      <!-- Strategic Buyer Card -->
+      <div class="dossier-card">
+        <div class="card-seal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+          </svg>
+        </div>
+        <div class="card-info">
+          <div class="card-head">
+            <span class="card-title">Strategic Buyer</span>
+            <span class="card-tag">[ACQUIRER]</span>
+          </div>
+          <p class="card-text">Acquire full IP ownership, execute escrow settlement, take over capstone codebases.</p>
+        </div>
+        <div class="card-radio"></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="perforated-rule"></div>
+    <button class="primary-cta-btn">
+      PROCEED TO DOSSIER ISSUANCE →
+    </button>
+    <div class="compliance-row">
+      <span class="mono-badge">WCAG 2.1 AA VERIFIED</span>
+      <span class="mono-badge">SEAL: 2PX GEOMETRY</span>
+    </div>
+  </div>
+</body>
+</html>

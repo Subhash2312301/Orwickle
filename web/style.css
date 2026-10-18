@@ -1,0 +1,663 @@
+/* ==========================================================================
+   ORWICKLE "THE DEALROOM DOSSIER" DESIGN SYSTEM (v1.2)
+   Pure Vanilla CSS Token Implementation
+   ========================================================================== */
+
+:root {
+  /* Typography Stacks */
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', Consolas, Menlo, Monaco, monospace;
+
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Invariant Inset & Radius (STRICT 2PX) */
+  --radius-dossier: 2px;
+  --touch-target: 48px;
+}
+
+/* Light Mode: "Paper" */
+body[data-theme="light"] {
+  --color-bg: #F3EFE6;
+  --color-surface: #FBF9F4;
+  --color-ink: #14110F;
+  --color-ink-muted: #5B554C;
+  --color-rule: #D9D2C3;
+  --color-signal: #D9381E;
+  --color-error: #8E281B;
+  --color-success: #1F6F5C;
+  --color-caution: #B7791F;
+
+  --card-shadow: none;
+  --screen-bg: #F3EFE6;
+}
+
+/* Dark Mode: "Night Ledger" */
+body[data-theme="dark"],
+.device-screen[data-screen-theme="dark"] {
+  --color-bg: #0F1512;
+  --color-surface: #161E1A;
+  --color-ink: #ECE6D8;
+  --color-ink-muted: #A39C8D;
+  --color-rule: #2A3530;
+  --color-signal: #FF6A3D;
+  --color-error: #E05A47;
+  --color-success: #2EA083;
+  --color-caution: #D4902A;
+
+  --card-shadow: none;
+  --screen-bg: #0F1512;
+}
+
+/* Global Reset & Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #E7E2D6;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Dossier Control Ribbon */
+.dossier-ribbon {
+  background: #14110F;
+  color: #ECE6D8;
+  border-bottom: 1px solid #2A3530;
+  padding: 12px 24px;
+}
+
+.ribbon-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.ribbon-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #FF6A3D;
+  font-weight: 600;
+}
+
+.brand-title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+}
+
+.brand-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  background: #2A3530;
+  border-radius: var(--radius-dossier);
+  color: #2EA083;
+}
+
+.ribbon-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.ribbon-tab {
+  background: transparent;
+  border: 1px solid #3A4540;
+  color: #A39C8D;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border-radius: var(--radius-dossier);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ribbon-tab:hover {
+  background: #232D28;
+  color: #ECE6D8;
+  border-color: #A39C8D;
+}
+
+.ribbon-tab.active {
+  background: #FF6A3D;
+  color: #14110F;
+  border-color: #FF6A3D;
+  font-weight: 600;
+}
+
+.tab-index {
+  opacity: 0.7;
+}
+
+.ribbon-btn {
+  background: #232D28;
+  color: #ECE6D8;
+  border: 1px solid #3A4540;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border-radius: var(--radius-dossier);
+  cursor: pointer;
+}
+
+/* Viewport Simulator Container */
+.viewport-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+}
+
+/* The Flat Edge-to-Edge Dossier Screen */
+.device-screen {
+  display: none;
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink-muted);
+  border-radius: var(--radius-dossier);
+  padding: 28px 24px;
+  min-height: 720px;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.device-screen.active {
+  display: flex;
+}
+
+/* Screen 3 defaults to Dark Mode "Night Ledger" */
+#screen-dashboard {
+  --color-bg: #0F1512;
+  --color-surface: #161E1A;
+  --color-ink: #ECE6D8;
+  --color-ink-muted: #A39C8D;
+  --color-rule: #2A3530;
+  --color-signal: #FF6A3D;
+  --color-error: #E05A47;
+  --color-success: #2EA083;
+  --color-caution: #D4902A;
+  background-color: var(--color-bg);
+  border-color: #2A3530;
+}
+
+/* Typography Elements */
+.mono-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.headline-serif {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.3px;
+  color: var(--color-ink);
+  margin-bottom: 10px;
+}
+
+.headline-serif em {
+  font-style: italic;
+}
+
+.body-desc {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+  margin-bottom: 24px;
+}
+
+/* Role Selection Grid */
+.roles-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dossier-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink-muted);
+  border-radius: var(--radius-dossier);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: var(--touch-target);
+}
+
+.dossier-card:hover {
+  background: #FFF;
+}
+
+.dossier-card.selected {
+  border: 2px solid var(--color-signal);
+  background: var(--color-surface);
+  padding: 15px; /* Offset 1px border */
+}
+
+.card-seal {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-ink-muted);
+  border-radius: var(--radius-dossier);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink);
+  flex-shrink: 0;
+}
+
+.dossier-card.selected .card-seal {
+  border-color: var(--color-signal);
+  color: var(--color-signal);
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-ink);
+}
+
+.card-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-muted);
+}
+
+.card-text {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-ink-muted);
+}
+
+.card-radio {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--color-ink-muted);
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dossier-card.selected .card-radio {
+  border-color: var(--color-signal);
+}
+
+.dossier-card.selected .card-radio::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 9px;
+  height: 9px;
+  background: var(--color-signal);
+  border-radius: 50%;
+}
+
+/* Perforated Divider Rule */
+.perforated-rule {
+  height: 1px;
+  border-top: 1px dashed var(--color-rule);
+  margin: 20px 0;
+}
+
+/* Primary Dossier Action Button */
+.primary-cta-btn {
+  width: 100%;
+  min-height: var(--touch-target);
+  background-color: var(--color-signal);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-dossier);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.primary-cta-btn:hover {
+  opacity: 0.92;
+}
+
+.primary-cta-btn:active {
+  transform: translateY(1px);
+}
+
+.ghost-btn {
+  width: 100%;
+  min-height: var(--touch-target);
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink-muted);
+  border-radius: var(--radius-dossier);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.compliance-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.mono-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-muted);
+  letter-spacing: 0.5px;
+}
+
+/* SCREEN 2: VERIFICATION STUB STYLES */
+.perforated-stub {
+  background: var(--color-surface);
+  border: 1px dashed var(--color-ink-muted);
+  border-radius: var(--radius-dossier);
+  padding: 20px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.stub-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  border-bottom: 1px dashed var(--color-rule);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.stub-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: var(--color-ink);
+  margin-bottom: 12px;
+}
+
+.otp-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.otp-cell {
+  width: 48px;
+  height: 54px;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-ink-muted);
+  border-radius: var(--radius-dossier);
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.otp-cell.active-cell {
+  border-color: var(--color-signal);
+  box-shadow: 0 0 0 1px var(--color-signal);
+}
+
+.timer-container {
+  margin-top: 10px;
+}
+
+.timer-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  margin-bottom: 6px;
+}
+
+.timer-val {
+  color: var(--color-signal);
+  font-weight: 600;
+}
+
+.timer-track {
+  width: 100%;
+  height: 2px;
+  background: var(--color-rule);
+}
+
+.timer-bar {
+  height: 2px;
+  background: var(--color-signal);
+  transition: width 1s linear;
+}
+
+/* Form Group & Input */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+}
+
+.dossier-input {
+  width: 100%;
+  min-height: var(--touch-target);
+  background: var(--color-surface);
+  border: 1px solid var(--color-ink-muted);
+  border-radius: var(--radius-dossier);
+  padding: 12px 14px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  margin-top: 6px;
+}
+
+/* SCREEN 3: DASHBOARD STYLES */
+.founder-subhead {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.status-stamp {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 3px 6px;
+  border-radius: var(--radius-dossier);
+}
+
+.stamp-green {
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.stamp-vermilion {
+  border: 1px solid var(--color-signal);
+  color: var(--color-signal);
+}
+
+.capstone-dossier-card {
+  background: var(--color-surface);
+  border: 1px solid #232D28;
+  border-radius: var(--radius-dossier);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.dossier-id-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dossier-cat {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  letter-spacing: 1px;
+}
+
+.dossier-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: var(--color-ink);
+  margin-bottom: 10px;
+}
+
+.dossier-abstract {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.metric-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: var(--color-ink-muted);
+}
+
+.metric-val {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.audit-strip {
+  background: #111714;
+  border: 1px solid #232D28;
+  border-radius: var(--radius-dossier);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.audit-head {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-muted);
+  border-bottom: 1px dashed #232D28;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.audit-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audit-list li {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.audit-time {
+  color: #A39C8D;
+}
+
+.audit-evt {
+  color: #ECE6D8;
+}

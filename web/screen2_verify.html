@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Orwickle — Verification Stub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #F3EFE6;
+      color: #14110F;
+      font-family: 'Schibsted Grotesk', -apple-system, sans-serif;
+      padding: 24px 20px;
+      min-height: 844px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .mono-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #5B554C;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .headline-serif {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 34px;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.3px;
+      color: #14110F;
+      margin-bottom: 10px;
+    }
+    .body-desc {
+      font-family: 'Schibsted Grotesk', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #5B554C;
+      margin-bottom: 24px;
+    }
+    .perforated-stub {
+      background: #FBF9F4;
+      border: 1px dashed #5B554C;
+      border-radius: 2px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .stub-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #5B554C;
+      border-bottom: 1px dashed #D9D2C3;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .stub-label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      color: #14110F;
+      margin-bottom: 12px;
+    }
+    .otp-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .otp-cell {
+      width: 46px;
+      height: 52px;
+      background: #F3EFE6;
+      border: 1.5px solid #5B554C;
+      border-radius: 2px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      color: #14110F;
+      outline: none;
+    }
+    .otp-cell.active-cell {
+      border-color: #D9381E;
+      box-shadow: 0 0 0 1px #D9381E;
+    }
+    .timer-container {
+      margin-top: 10px;
+    }
+    .timer-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #5B554C;
+      margin-bottom: 6px;
+    }
+    .timer-val {
+      color: #D9381E;
+      font-weight: 600;
+    }
+    .timer-track {
+      width: 100%;
+      height: 2px;
+      background: #D9D2C3;
+    }
+    .timer-bar {
+      height: 2px;
+      background: #D9381E;
+      width: 78%;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    .field-label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      color: #14110F;
+      margin-bottom: 8px;
+    }
+    .dossier-input {
+      width: 100%;
+      min-height: 48px;
+      background: #FBF9F4;
+      border: 1px solid #5B554C;
+      border-radius: 2px;
+      padding: 12px 14px;
+      font-family: 'Schibsted Grotesk', sans-serif;
+      font-size: 15px;
+      color: #14110F;
+      outline: none;
+    }
+    .field-hint {
+      font-size: 11px;
+      color: #5B554C;
+      margin-top: 6px;
+    }
+    .perforated-rule {
+      height: 1px;
+      border-top: 1px dashed #D9D2C3;
+      margin: 20px 0;
+    }
+    .primary-cta-btn {
+      width: 100%;
+      min-height: 48px;
+      background-color: #D9381E;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 2px;
+      font-family: 'Schibsted Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ghost-btn {
+      width: 100%;
+      min-height: 48px;
+      background: transparent;
+      color: #14110F;
+      border: 1px solid #5B554C;
+      border-radius: 2px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .compliance-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 14px;
+    }
+    .mono-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #5B554C;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="mono-meta">
+      <span>02 / SECURITY PROTOCOL</span>
+      <span>[SEC-OTP-04] DISPATCHED</span>
+    </div>
+    <h1 class="headline-serif">Verify Founder Identity.</h1>
+    <p class="body-desc">
+      Per ADR-009, verification requires both the 6-digit cryptographic token and your passphrase to defeat account pre-hijacking attacks.
+    </p>
+
+    <!-- Perforated Receipt Box -->
+    <div class="perforated-stub">
+      <div class="stub-header">
+        <span>TRANSACTIONAL NOTARY STUB</span>
+        <span>HASH: e4b2...8f01</span>
+      </div>
+      
+      <label class="stub-label">ENTER 6-DIGIT VERIFICATION CODE</label>
+      <div class="otp-row">
+        <input class="otp-cell" value="7" readonly />
+        <input class="otp-cell" value="3" readonly />
+        <input class="otp-cell" value="9" readonly />
+        <input class="otp-cell active-cell" value="4" readonly />
+        <input class="otp-cell" value="1" readonly />
+        <input class="otp-cell" value="8" readonly />
+      </div>
+
+      <div class="timer-container">
+        <div class="timer-meta">
+          <span>TOKEN VALIDITY</span>
+          <span class="timer-val">09:42 REMAINING</span>
+        </div>
+        <div class="timer-track">
+          <div class="timer-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label" for="passphrase-input">CONFIRM ACCOUNT PASSPHRASE</label>
+      <input type="password" id="passphrase-input" class="dossier-input" value="SecureDealroom2026!" readonly />
+      <div class="field-hint">
+        <span>Must match passphrase submitted during initial registration.</span>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="perforated-rule"></div>
+    <button class="primary-cta-btn">
+      AUTHORIZE ACCOUNT &amp; OPEN DOSSIER
+    </button>
+    <button class="ghost-btn">
+      REQUEST FRESH CODE (COOLDOWN: 45S)
+    </button>
+    <div class="compliance-row">
+      <span class="mono-badge">ADR-009 ANTI-PRE-HIJACKING</span>
+      <span class="mono-badge">WCAG 2.1 AA PASS</span>
+    </div>
+  </div>
+</body>
+</html>

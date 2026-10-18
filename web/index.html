@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orwickle — The Dealroom Dossier (Live Running UI)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="light">
+  <!-- Dossier Control Ribbon -->
+  <header class="dossier-ribbon">
+    <div class="ribbon-inner">
+      <div class="ribbon-brand">
+        <span class="brand-code">[ORW-SYS-LIVE]</span>
+        <span class="brand-title">ORWICKLE DEALROOM ENGINE</span>
+        <span class="brand-badge">PROTOCOL v2.0 • ACTIVE</span>
+      </div>
+      <nav class="ribbon-nav">
+        <button id="tab-btn-roles" class="ribbon-tab active" onclick="switchScreen('roles')">
+          <span class="tab-index">01</span> ROLE DESIGNATION
+        </button>
+        <button id="tab-btn-verify" class="ribbon-tab" onclick="switchScreen('verify')">
+          <span class="tab-index">02</span> VERIFICATION STUB
+        </button>
+        <button id="tab-btn-dashboard" class="ribbon-tab" onclick="switchScreen('dashboard')">
+          <span class="tab-index">03</span> FOUNDER DOSSIER (DARK)
+        </button>
+      </nav>
+      <div class="ribbon-actions">
+        <button id="theme-toggle-btn" class="ribbon-btn" onclick="toggleTheme()">MODE: <span id="theme-label">PAPER</span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Viewport Simulator Container -->
+  <main class="viewport-wrapper">
+    <!-- SCREEN 1: ROLE SELECTION -->
+    <section id="screen-roles" class="device-screen active">
+      <div class="screen-header">
+        <div class="mono-meta">
+          <span>01 / DESIGNATION</span>
+          <span>STAGE: ONBOARDING</span>
+        </div>
+        <h1 class="headline-serif">Select your <em>institutional</em> designation.</h1>
+        <p class="body-desc">
+          Your role governs dealroom clearance, memorandum access, escrow authorization, and transactional legal rights.
+        </p>
+      </div>
+
+      <div class="roles-grid">
+        <!-- Student / Founder Card -->
+        <div class="dossier-card selected" onclick="selectRole(this, 'student')">
+          <div class="card-seal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </div>
+          <div class="card-info">
+            <div class="card-head">
+              <span class="card-title">Founder / Student</span>
+              <span class="card-tag">[ISSUER]</span>
+            </div>
+            <p class="card-text">List verified academic capstones, issue confidential memoranda, receive term sheet offers.</p>
+          </div>
+          <div class="card-radio"></div>
+        </div>
+
+        <!-- Investor Card -->
+        <div class="dossier-card" onclick="selectRole(this, 'investor')">
+          <div class="card-seal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
+          <div class="card-info">
+            <div class="card-head">
+              <span class="card-title">Accredited Investor</span>
+              <span class="card-tag">[CAPITAL]</span>
+            </div>
+            <p class="card-text">Audit evaluated IP portfolios, deploy early-stage capital, tender binding convertible notes.</p>
+          </div>
+          <div class="card-radio"></div>
+        </div>
+
+        <!-- Strategic Buyer Card -->
+        <div class="dossier-card" onclick="selectRole(this, 'buyer')">
+          <div class="card-seal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+            </svg>
+          </div>
+          <div class="card-info">
+            <div class="card-head">
+              <span class="card-title">Strategic Buyer</span>
+              <span class="card-tag">[ACQUIRER]</span>
+            </div>
+            <p class="card-text">Acquire full IP ownership, execute escrow settlement, take over capstone codebases.</p>
+          </div>
+          <div class="card-radio"></div>
+        </div>
+      </div>
+
+      <div class="screen-footer">
+        <div class="perforated-rule"></div>
+        <button class="primary-cta-btn" onclick="switchScreen('verify')">
+          PROCEED TO DOSSIER ISSUANCE →
+        </button>
+        <div class="compliance-row">
+          <span class="mono-badge">WCAG 2.1 AA VERIFIED</span>
+          <span class="mono-badge">SEAL: 2PX GEOMETRY</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: VERIFICATION STUB -->
+    <section id="screen-verify" class="device-screen">
+      <div class="screen-header">
+        <div class="mono-meta">
+          <span>02 / SECURITY PROTOCOL</span>
+          <span>[SEC-OTP-04] DISPATCHED</span>
+        </div>
+        <h1 class="headline-serif">Verify Founder Identity.</h1>
+        <p class="body-desc">
+          Per ADR-009, verification requires both the 6-digit cryptographic token and your passphrase to defeat account pre-hijacking attacks.
+        </p>
+      </div>
+
+      <!-- Perforated Receipt Box -->
+      <div class="perforated-stub">
+        <div class="stub-header">
+          <span class="stub-title">TRANSACTIONAL NOTARY STUB</span>
+          <span class="stub-code">HASH: e4b2...8f01</span>
+        </div>
+        
+        <label class="stub-label">ENTER 6-DIGIT VERIFICATION CODE</label>
+        <div class="otp-row">
+          <input class="otp-cell" maxlength="1" value="7" readonly />
+          <input class="otp-cell" maxlength="1" value="3" readonly />
+          <input class="otp-cell" maxlength="1" value="9" readonly />
+          <input class="otp-cell active-cell" maxlength="1" value="4" readonly />
+          <input class="otp-cell" maxlength="1" value="1" readonly />
+          <input class="otp-cell" maxlength="1" value="8" readonly />
+        </div>
+
+        <div class="timer-container">
+          <div class="timer-meta">
+            <span class="timer-label">TOKEN VALIDITY</span>
+            <span class="timer-val" id="countdown-timer">09:42 REMAINING</span>
+          </div>
+          <div class="timer-track">
+            <div class="timer-bar" style="width: 78%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label" for="passphrase-input">CONFIRM ACCOUNT PASSPHRASE</label>
+        <input type="password" id="passphrase-input" class="dossier-input" value="SecureDealroom2026!" readonly />
+        <div class="field-hint">
+          <span>Must match passphrase submitted during initial registration.</span>
+        </div>
+      </div>
+
+      <div class="screen-footer">
+        <div class="perforated-rule"></div>
+        <button class="primary-cta-btn" onclick="switchScreen('dashboard')">
+          AUTHORIZE ACCOUNT &amp; OPEN DOSSIER
+        </button>
+        <button class="ghost-btn" onclick="alert('Fresh OTP dispatched subject to 60s cooldown.')">
+          REQUEST FRESH CODE (COOLDOWN: 45S)
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: FOUNDER DOSSIER DASHBOARD (NIGHT LEDGER) -->
+    <section id="screen-dashboard" class="device-screen">
+      <div class="screen-header">
+        <div class="mono-meta">
+          <span class="status-stamp stamp-green">[ACTIVE DOSSIER • FOUNDER / STUDENT]</span>
+          <span>ORW-2026-09</span>
+        </div>
+        <h1 class="headline-serif">Mustafa Muhammad</h1>
+        <div class="founder-subhead">
+          <span class="mono-badge">SZABIST KARACHI</span>
+          <span class="mono-badge">FACULTY: CS &amp; SE</span>
+          <span class="mono-badge">AUTH: JWT (STABLE SID)</span>
+        </div>
+      </div>
+
+      <!-- Main Capstone Project Dossier Card -->
+      <div class="capstone-dossier-card">
+        <div class="dossier-card-header">
+          <div class="dossier-id-row">
+            <span class="dossier-cat">CAPSTONE PROJECT DOSSIER</span>
+            <span class="status-stamp stamp-vermilion">[DRAFT TERM SHEET READY]</span>
+          </div>
+          <h2 class="dossier-title">Autonomous Cross-Border Escrow Engine</h2>
+          <p class="dossier-abstract">
+            Multi-signature programmable escrow settlement framework resolving IP ownership transfer across jurisdictions with zero-trust notary verification.
+          </p>
+        </div>
+
+        <div class="perforated-rule"></div>
+
+        <!-- Metric Grid -->
+        <div class="metrics-grid">
+          <div class="metric-cell">
+            <span class="metric-label">INDICATIVE VALUATION</span>
+            <span class="metric-val">$250,000</span>
+          </div>
+          <div class="metric-cell">
+            <span class="metric-label">ACADEMIC SCORE</span>
+            <span class="metric-val">9.4 / 10</span>
+          </div>
+          <div class="metric-cell">
+            <span class="metric-label">ACTIVE TERM SHEETS</span>
+            <span class="metric-val">2 BIDS</span>
+          </div>
+        </div>
+
+        <div class="perforated-rule"></div>
+
+        <div class="action-row">
+          <button class="primary-cta-btn">
+            REVIEW PENDING TERM SHEET (VAL-1) →
+          </button>
+        </div>
+      </div>
+
+      <!-- Security & Audit Quick Log -->
+      <div class="audit-strip">
+        <div class="audit-head">
+          <span class="audit-title">IMMUTABLE SESSION AUDIT TRAIL</span>
+          <span class="audit-status">SECURE • ARGON2ID ENFORCED</span>
+        </div>
+        <ul class="audit-list">
+          <li>
+            <span class="audit-time">03:19:15</span>
+            <span class="audit-evt">AUTH_LOGIN_SUCCESS (IP: 127.0.0.1, SID: d9e0...7a11)</span>
+          </li>
+          <li>
+            <span class="audit-time">03:19:12</span>
+            <span class="audit-evt">AUTH_EMAIL_VERIFIED (Anti-Pre-Hijacking Passed)</span>
+          </li>
+          <li>
+            <span class="audit-time">02:40:03</span>
+            <span class="audit-evt">DB_MIGRATION_001_APPLIED (PostgreSQL 18.6 RLS Enabled)</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="screen-footer">
+        <div class="perforated-rule"></div>
+        <div class="compliance-row">
+          <span class="mono-badge">THEME: NIGHT LEDGER (#0F1512)</span>
+          <span class="mono-badge">REFRESH ROTATION: 10S GRACE</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
