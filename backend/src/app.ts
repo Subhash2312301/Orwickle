@@ -22,9 +22,9 @@ export function createApp(): Express {
   // 3. Request Logging
   app.use(requestLogger);
 
-  // 4. API Endpoints
-  app.use('/api', healthRouter);
-  app.use('/', healthRouter); // Base health check aliases
+  // 4. API Endpoints (Version 1 Base Path & Top-level Cluster Probes)
+  app.use('/api/v1', healthRouter);
+  app.use('/', healthRouter);
 
   // 5. 404 Route Catch-all
   app.use((req: Request, res: Response, next: NextFunction) => {

@@ -1,26 +1,70 @@
 import { Pool, PoolConfig } from 'pg';
+import fs from 'fs';
 import { env } from '../config/env';
 
 const isTest = env.NODE_ENV === 'test';
-const connectionString = isTest && env.DATABASE_TEST_URL ? env.DATABASE_TEST_URL : env.DATABASE_URL;
+const appConnectionString = isTest && env.DATABASE_TEST_URL ? env.DATABASE_TEST_URL : env.DATABASE_URL;
+const migrationConnectionString =
+  isTest && env.DATABASE_TEST_URL
+    ? env.DATABASE_TEST_URL
+    : env.DATABASE_MIGRATION_URL || env.DATABASE_URL;
 
-const requiresSsl =
-  env.DATABASE_SSL ||
-  connectionString.includes('supabase.com') ||
-  connectionString.includes('sslmode=require');
+function buildSslConfig(connectionString: string) {
+  const requiresSsl =
+    env.DATABASE_SSL ||
+    connectionString.includes('supabase.com') ||
+    connectionString.includes('sslmode=require');
 
-const poolConfig: PoolConfig = {
-  connectionString,
+  if (!requiresSsl) {
+    return false;
+  }
+
+  // If CA certificate is provided as a file path or string
+  if (env.DATABASE_CA_CERT) {
+    let caContent = env.DATABASE_CA_CERT;
+    if (fs.existsSync(env.DATABASE_CA_CERT)) {
+      caContent = fs.readFileSync(env.DATABASE_CA_CERT, 'utf-8');
+    }
+    return {
+      rejectUnauthorized: true,
+      ca: caContent,
+    };
+  }
+
+  // Local/staging fallback when explicit CA is not configured
+  return {
+    rejectUnauthorized: false,
+  };
+}
+
+// 1. Application pool: Targets the transaction pooler (port 6543)
+const appPoolConfig: PoolConfig = {
+  connectionString: appConnectionString,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
-  ssl: requiresSsl ? { rejectUnauthorized: false } : false,
+  ssl: buildSslConfig(appConnectionString),
 };
 
-export const pool = new Pool(poolConfig);
+export const pool = new Pool(appPoolConfig);
 
 pool.on('error', (err) => {
-  console.error('[PostgreSQL Pool Unexpected Error]', err);
+  console.error('[PostgreSQL Application Pool Error]', err);
+});
+
+// 2. Migration pool: Targets the session pooler (port 5432) or direct connection for DDL operations
+const migrationPoolConfig: PoolConfig = {
+  connectionString: migrationConnectionString,
+  max: 2,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
+  ssl: buildSslConfig(migrationConnectionString),
+};
+
+export const migrationPool = new Pool(migrationPoolConfig);
+
+migrationPool.on('error', (err) => {
+  console.error('[PostgreSQL Migration Pool Error]', err);
 });
 
 export async function checkDatabaseConnection(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {

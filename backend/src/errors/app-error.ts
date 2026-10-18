@@ -5,7 +5,8 @@ export class AppError extends Error {
   public readonly isOperational: boolean;
 
   constructor(message: string, statusCode = 500, code = 'INTERNAL_ERROR', details?: any) {
-    super(message);
+    const prefixedMessage = message.startsWith('ERROR —') ? message : `ERROR — ${message}`;
+    super(prefixedMessage);
     this.statusCode = statusCode;
     this.code = code;
     this.details = details;

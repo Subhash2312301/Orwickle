@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- Orwickle Initial Schema: Core Identity, Profiles, Sessions, & Auditing
--- Migration: 001_initial_schema.sql
+-- Migration: 001_initial_schema.sql (v1.2)
 -- ==============================================================================
 
 -- 1. Enable Cryptographic UUID Generator Extension
@@ -61,12 +61,12 @@ CREATE INDEX IF NOT EXISTS idx_sessions_family_id ON sessions (family_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_refresh_hash ON sessions (refresh_token_hash);
 CREATE INDEX IF NOT EXISTS idx_sessions_active_lookup ON sessions (id, is_revoked);
 
--- 5. HMAC OTP Verification Records Table
+-- 5. HMAC OTP Verification Records Table (Bound to Purpose & Identifier)
 CREATE TABLE IF NOT EXISTS otps (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) NOT NULL,
-    code_hash VARCHAR(64) NOT NULL,
-    type VARCHAR(32) NOT NULL CHECK (type IN ('signup_verify', 'login_otp', 'password_reset')),
+    identifier VARCHAR(255) NOT NULL, -- normalized email or user_id UUID string
+    purpose VARCHAR(32) NOT NULL CHECK (purpose IN ('signup_verify', 'login_otp', 'password_reset')),
+    code_hash VARCHAR(64) NOT NULL,   -- HMAC-SHA256(code + ":" + purpose + ":" + identifier, OTP_PEPPER)
     attempts_count INT NOT NULL DEFAULT 0,
     max_attempts INT NOT NULL DEFAULT 5,
     expires_at TIMESTAMPTZ NOT NULL,
@@ -74,21 +74,22 @@ CREATE TABLE IF NOT EXISTS otps (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_otps_email_type ON otps (LOWER(email), type);
-CREATE INDEX IF NOT EXISTS idx_otps_active ON otps (LOWER(email), type, consumed_at, expires_at);
+CREATE INDEX IF NOT EXISTS idx_otps_identifier_purpose ON otps (LOWER(identifier), purpose);
+CREATE INDEX IF NOT EXISTS idx_otps_active ON otps (LOWER(identifier), purpose, consumed_at, expires_at);
 
--- 6. Authentication Attempts & Exponential Backoff / Lockout Table
+-- 6. Authentication Attempts & Exponential Backoff / Escalating Lockout Table
 CREATE TABLE IF NOT EXISTS auth_attempts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    identifier VARCHAR(255) NOT NULL,
+    normalized_email VARCHAR(255) NOT NULL,
     ip_address VARCHAR(45) NOT NULL,
     failed_count INT NOT NULL DEFAULT 0,
+    lockout_count INT NOT NULL DEFAULT 0, -- tracks repeated lockouts for escalating backoff (15m, 30m, 60m)
     locked_until TIMESTAMPTZ,
     last_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_attempts_identifier_ip ON auth_attempts (LOWER(identifier), ip_address);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_attempts_email_ip ON auth_attempts (LOWER(normalized_email), ip_address);
 CREATE INDEX IF NOT EXISTS idx_auth_attempts_locked_until ON auth_attempts (locked_until);
 
 -- 7. System Audit Logs Table

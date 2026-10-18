@@ -17,9 +17,8 @@ describe('Health and Infrastructure Endpoints', () => {
     expect(res.body).toEqual({ status: 'alive' });
   });
 
-  it('GET /health returns health payload structure', async () => {
-    const res = await request(app).get('/health');
-    // Status can be 200 (healthy) or 503 (degraded if local db isn't up during unit testing)
+  it('GET /api/v1/health returns health payload structure', async () => {
+    const res = await request(app).get('/api/v1/health');
     expect([200, 503]).toContain(res.status);
     expect(res.body).toHaveProperty('version', '1.0.0');
     expect(res.body).toHaveProperty('service', 'orwickle-backend');
@@ -27,11 +26,19 @@ describe('Health and Infrastructure Endpoints', () => {
     expect(res.body).toHaveProperty('database');
   });
 
-  it('GET /non-existent-endpoint triggers standard 404 error response', async () => {
+  it('GET /random-unknown-route triggers standard 404 with ERROR — prefix', async () => {
     const res = await request(app).get('/random-unknown-route');
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('success', false);
     expect(res.body.error).toHaveProperty('code', 'NOT_FOUND');
-    expect(res.body.error).toHaveProperty('message');
+    expect(res.body.error.message).toMatch(/^ERROR —/);
+  });
+
+  it('GET /admin without X-Orwickle-Admin header returns 403 Forbidden with ERROR — prefix', async () => {
+    const res = await request(app).get('/admin');
+    expect(res.status).toBe(403);
+    expect(res.body).toHaveProperty('success', false);
+    expect(res.body.error).toHaveProperty('code', 'ADMIN_HEADER_REQUIRED');
+    expect(res.body.error.message).toMatch(/^ERROR —/);
   });
 });

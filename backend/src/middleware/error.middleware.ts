@@ -13,14 +13,14 @@ export function errorHandler(
   if (err instanceof ZodError) {
     const formattedDetails = err.errors.map((e) => ({
       path: e.path.join('.'),
-      message: e.message,
+      message: `ERROR — ${e.message}`,
     }));
 
     res.status(400).json({
       success: false,
       error: {
         code: 'VALIDATION_ERROR',
-        message: 'Request payload validation failed.',
+        message: 'ERROR — Request payload validation failed.',
         details: formattedDetails,
       },
     });
@@ -46,7 +46,7 @@ export function errorHandler(
       success: false,
       error: {
         code: 'DUPLICATE_ENTRY',
-        message: 'A resource with these unique attributes already exists.',
+        message: 'ERROR — A resource with these unique attributes already exists.',
       },
     });
     return;
@@ -58,7 +58,7 @@ export function errorHandler(
       success: false,
       error: {
         code: 'FOREIGN_KEY_VIOLATION',
-        message: 'Referenced entity does not exist.',
+        message: 'ERROR — Referenced entity does not exist.',
       },
     });
     return;
@@ -67,14 +67,16 @@ export function errorHandler(
   // 5. Unhandled / Unexpected Errors
   console.error('[UNHANDLED_ERROR]', err);
 
+  const baseMessage =
+    env.NODE_ENV === 'production'
+      ? 'An internal error occurred. Please contact the administrator.'
+      : err.message || 'An internal error occurred.';
+
   res.status(500).json({
     success: false,
     error: {
       code: 'INTERNAL_SERVER_ERROR',
-      message:
-        env.NODE_ENV === 'production'
-          ? 'An internal error occurred. Please contact the administrator.'
-          : err.message || 'An internal error occurred.',
+      message: `ERROR — ${baseMessage}`,
     },
   });
 }

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { pool } from './pool';
+import { migrationPool } from './pool';
 
 export interface MigrationResult {
   applied: string[];
@@ -8,7 +8,7 @@ export interface MigrationResult {
 }
 
 export async function runMigrations(): Promise<MigrationResult> {
-  const client = await pool.connect();
+  const client = await migrationPool.connect();
   const applied: string[] = [];
   const skipped: string[] = [];
 

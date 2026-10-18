@@ -9,15 +9,17 @@ const envSchema = z.object({
 
   // Database Connection
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DATABASE_MIGRATION_URL: z.string().optional(),
   DATABASE_TEST_URL: z.string().optional(),
   DATABASE_SSL: z
     .string()
     .transform((val) => val === 'true' || val === '1')
     .default('false'),
+  DATABASE_CA_CERT: z.string().optional(),
 
   // Secrets & Salt Keys
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
+  PASSWORD_RESET_SECRET: z.string().min(32, 'PASSWORD_RESET_SECRET must be at least 32 characters'),
   OTP_PEPPER: z.string().min(32, 'OTP_PEPPER must be at least 32 characters'),
 
   // Mail Delivery
@@ -36,14 +38,10 @@ const envSchema = z.object({
   ADMIN_CORS_ORIGIN: z.string().default('http://localhost:5173'),
   MOBILE_ALLOWED_ORIGINS: z.string().default('http://localhost,capacitor://localhost'),
 
-  // Authentication Invariants
-  REQUIRE_LOGIN_OTP: z
-    .string()
-    .transform((val) => val === 'true' || val === '1')
-    .default('false'),
+  // Authentication Security Policies
+  LOGIN_OTP_MODE: z.enum(['always', 'new_device', 'off']).default('always'),
   MAX_OTP_ATTEMPTS: z.coerce.number().default(5),
-  ACCOUNT_LOCKOUT_THRESHOLD: z.coerce.number().default(6),
-  ACCOUNT_LOCKOUT_MINUTES: z.coerce.number().default(15),
+  ACCOUNT_LOCKOUT_THRESHOLD: z.coerce.number().default(5),
   REFRESH_TOKEN_GRACE_SECONDS: z.coerce.number().default(10),
 });
 

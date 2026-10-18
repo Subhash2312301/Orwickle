@@ -2,7 +2,7 @@ import argon2 from 'argon2';
 
 export const ARGON2_OPTIONS: argon2.Options = {
   type: argon2.argon2id,
-  memoryCost: 65536, // 64 MB
+  memoryCost: 65536, // 64 MB (RFC 9106 recommended interactive parameters)
   timeCost: 3,       // 3 iterations
   parallelism: 4,    // 4 threads
   hashLength: 32,    // 32 bytes
@@ -40,4 +40,19 @@ export async function verifyDummyHash(candidatePassword: string): Promise<boolea
     // Ignore verification errors; result is always false
   }
   return false;
+}
+
+/**
+ * Checks whether an existing Argon2 hash needs to be upgraded to current cost parameters (ADR-012).
+ * If true, returns the freshly computed hash; otherwise returns null.
+ */
+export async function checkAndRehashPassword(
+  storedHash: string,
+  plainPassword: string
+): Promise<string | null> {
+  const needsUpgrade = argon2.needsRehash(storedHash, ARGON2_OPTIONS);
+  if (needsUpgrade) {
+    return await argon2.hash(plainPassword, ARGON2_OPTIONS);
+  }
+  return null;
 }

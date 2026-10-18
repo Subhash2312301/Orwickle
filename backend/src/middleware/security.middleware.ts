@@ -22,10 +22,10 @@ const allowedOrigins = [
 
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
-    // Mobile apps and curl/postman might have no origin
+    // Mobile apps and CLI/curl test clients may not send an Origin header
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin) || env.NODE_ENV !== 'production') {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
@@ -42,20 +42,42 @@ export const corsMiddleware = cors({
   ],
 });
 
+/**
+ * Universal Origin and Custom Header check for Administrative endpoints (ADR-014)
+ * Enforced in EVERY environment (development, staging, production).
+ */
 export function adminHeaderCheck(req: Request, res: Response, next: NextFunction): void {
-  // In production, when cross-origin cookies might be used, check defense-in-depth header
-  if (req.path.startsWith('/admin') && env.NODE_ENV === 'production') {
-    const adminHeader = req.headers['x-orwickle-admin'] || req.headers['x-requested-with'];
-    if (!adminHeader) {
+  const isAdminRoute =
+    req.path.startsWith('/admin') ||
+    req.path.startsWith('/api/v1/admin') ||
+    req.path.startsWith('/api/v1/auth/admin');
+
+  if (isAdminRoute) {
+    const adminHeader = req.headers['x-orwickle-admin'];
+    if (adminHeader !== '1') {
       res.status(403).json({
         success: false,
         error: {
           code: 'ADMIN_HEADER_REQUIRED',
-          message: 'Administrative requests require verified client header credentials.',
+          message: 'ERROR — Administrative requests require explicit X-Orwickle-Admin: 1 header verification.',
+        },
+      });
+      return;
+    }
+
+    // Origin verification when Origin is present
+    const origin = req.headers['origin'];
+    if (origin && !allowedOrigins.includes(origin)) {
+      res.status(403).json({
+        success: false,
+        error: {
+          code: 'ORIGIN_FORBIDDEN',
+          message: 'ERROR — Origin not permitted for administrative access.',
         },
       });
       return;
     }
   }
+
   next();
 }
