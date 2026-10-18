@@ -15,3 +15,7 @@ build/
 *.cer
 ca/
 ca.crt
+
+# Internal specification & architecture documentation
+docs/DECISIONS.md
+docs/DESIGN.md
