@@ -10,3 +10,8 @@ coverage/
 .vscode/
 build/
 .dart_tool/
+*.crt
+*.pem
+*.cer
+ca/
+ca.crt

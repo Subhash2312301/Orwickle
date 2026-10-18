@@ -5,6 +5,7 @@ import { migrationPool } from './pool';
 export interface MigrationResult {
   applied: string[];
   skipped: string[];
+  all: { id: number; name: string; applied_at: Date }[];
 }
 
 export async function runMigrations(): Promise<MigrationResult> {
@@ -62,7 +63,10 @@ export async function runMigrations(): Promise<MigrationResult> {
       }
     }
 
-    return { applied, skipped };
+    // 5. Query final state of _migrations table
+    const finalRes = await client.query('SELECT id, name, applied_at FROM _migrations ORDER BY id ASC');
+
+    return { applied, skipped, all: finalRes.rows };
   } finally {
     client.release();
   }
@@ -76,6 +80,8 @@ if (require.main === module) {
     runMigrations()
       .then((res) => {
         console.log(`[Migration Summary] ${res.applied.length} applied, ${res.skipped.length} already up-to-date.`);
+        console.log('[Table: _migrations contents]');
+        console.table(res.all);
         process.exit(0);
       })
       .catch((err) => {
