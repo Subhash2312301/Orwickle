@@ -4,6 +4,9 @@ import { helmetMiddleware, corsMiddleware, adminHeaderCheck } from './middleware
 import { requestLogger } from './middleware/logging.middleware';
 import { errorHandler } from './middleware/error.middleware';
 import { healthRouter } from './routes/health.routes';
+import { authRouter } from './routes/auth.routes';
+import { meRouter } from './routes/me.routes';
+import { adminRouter } from './routes/admin.routes';
 import { NotFoundError } from './errors/app-error';
 
 export function createApp(): Express {
@@ -22,7 +25,10 @@ export function createApp(): Express {
   // 3. Request Logging
   app.use(requestLogger);
 
-  // 4. API Endpoints (Version 1 Base Path & Top-level Cluster Probes)
+  // 4. API Endpoints
+  app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/me', meRouter);
+  app.use('/api/v1/admin', adminRouter);
   app.use('/api/v1', healthRouter);
   app.use('/', healthRouter);
 

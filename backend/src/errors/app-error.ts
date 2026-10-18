@@ -52,3 +52,10 @@ export class TooManyRequestsError extends AppError {
     super(message, 429, code, details);
   }
 }
+
+export class LockedError extends AppError {
+  constructor(message = 'Account is temporarily locked due to repeated authentication failures.', code = 'ACCOUNT_LOCKED', details?: any) {
+    super(message, 423, code, details);
+  }
+}
+
