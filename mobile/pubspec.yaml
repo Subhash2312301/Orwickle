@@ -1,0 +1,40 @@
+name: orwickle_mobile
+description: "Orwickle Mobile Client — The Dealroom Dossier Interface"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Networking & HTTP
+  dio: ^5.7.0
+
+  # Storage & Token Security (ADR-002)
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.2
+
+  # State Management & DI
+  provider: ^6.1.2
+
+  # Offline/Online Typography
+  google_fonts: ^6.2.1
+
+  # Vector & UI Utilities
+  flutter_svg: ^2.0.10+1
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
+    - assets/images/
