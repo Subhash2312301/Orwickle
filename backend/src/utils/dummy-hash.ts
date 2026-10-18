@@ -1,4 +1,5 @@
 import argon2 from 'argon2';
+import { withArgon2Semaphore } from './argon2-semaphore';
 
 export const ARGON2_OPTIONS: argon2.Options = {
   type: argon2.argon2id,
@@ -17,7 +18,9 @@ let precomputedDummyHash: string | null = null;
 export async function initializeDummyHash(): Promise<string> {
   if (!precomputedDummyHash) {
     const dummyPassword = 'Orwickle_Dummy_Timing_Safe_Password_2026!';
-    precomputedDummyHash = await argon2.hash(dummyPassword, ARGON2_OPTIONS);
+    precomputedDummyHash = await withArgon2Semaphore(() =>
+      argon2.hash(dummyPassword, ARGON2_OPTIONS)
+    );
   }
   return precomputedDummyHash;
 }
@@ -30,12 +33,26 @@ export function getDummyHash(): string {
 }
 
 /**
+ * Hashes a plaintext password using Argon2id guarded by the concurrency semaphore.
+ */
+export async function hashPassword(plainPassword: string): Promise<string> {
+  return withArgon2Semaphore(() => argon2.hash(plainPassword, ARGON2_OPTIONS));
+}
+
+/**
+ * Verifies a candidate password against a hash guarded by the concurrency semaphore.
+ */
+export async function verifyPassword(storedHash: string, candidatePassword: string): Promise<boolean> {
+  return withArgon2Semaphore(() => argon2.verify(storedHash, candidatePassword, ARGON2_OPTIONS));
+}
+
+/**
  * Verifies a candidate password against the static dummy hash in constant time.
  */
 export async function verifyDummyHash(candidatePassword: string): Promise<boolean> {
   try {
     const dummyHash = getDummyHash();
-    await argon2.verify(dummyHash, candidatePassword, ARGON2_OPTIONS);
+    await verifyPassword(dummyHash, candidatePassword);
   } catch {
     // Ignore verification errors; result is always false
   }
@@ -52,7 +69,7 @@ export async function checkAndRehashPassword(
 ): Promise<string | null> {
   const needsUpgrade = argon2.needsRehash(storedHash, ARGON2_OPTIONS);
   if (needsUpgrade) {
-    return await argon2.hash(plainPassword, ARGON2_OPTIONS);
+    return await hashPassword(plainPassword);
   }
   return null;
 }

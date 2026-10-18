@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { initializeDummyHash } from '../src/utils/dummy-hash';
+import { initializeDummyHash, hashPassword, verifyPassword } from '../src/utils/dummy-hash';
 
 describe('Health and Infrastructure Endpoints', () => {
   let app: ReturnType<typeof createApp>;
@@ -53,7 +53,16 @@ describe('Health and Infrastructure Endpoints', () => {
       .set('Origin', 'http://localhost:5173')
       .set('X-Orwickle-Admin', '1');
 
-    // Passes security middleware, reaching 404 (since /admin route handler is scheduled for P7)
     expect(res.status).toBe(404);
+  });
+
+  it('Argon2 concurrency semaphore successfully coordinates parallel hash operations', async () => {
+    const testPromises = Array.from({ length: 6 }, (_, i) =>
+      hashPassword(`concurrent_test_password_${i}`)
+    );
+    const hashes = await Promise.all(testPromises);
+    expect(hashes).toHaveLength(6);
+    const verifyResult = await verifyPassword(hashes[0], 'concurrent_test_password_0');
+    expect(verifyResult).toBe(true);
   });
 });
