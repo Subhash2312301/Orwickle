@@ -1,26 +1,37 @@
 -- ==============================================================================
--- Orwickle Initial Schema: Core Identity, Profiles, Sessions, Refresh Tokens, & Auditing
--- Migration: 001_initial_schema.sql (v1.5)
+-- Orwickle Initial Schema: Core Identity, Sessions, Refresh Tokens, & Security
+-- Migration: 001_initial_schema.sql (v1.6)
+-- Run-once guaranteed by _migrations table (no IF NOT EXISTS guards)
 -- ==============================================================================
 
--- 1. Enable Cryptographic UUID Generator Extension
+-- 1. Ensure Roles and Extensions Exist
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+DO $$ BEGIN
+    CREATE ROLE anon NOLOGIN;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE ROLE authenticated NOLOGIN;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
 -- 2. PostgreSQL ENUM Types
-DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('student', 'investor', 'buyer', 'admin');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+CREATE TYPE user_role AS ENUM ('student', 'investor', 'buyer', 'admin');
+CREATE TYPE user_status AS ENUM ('pending_verification', 'active', 'suspended');
 
-DO $$ BEGIN
-    CREATE TYPE user_status AS ENUM ('pending_verification', 'active', 'suspended');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- 3. Automatic updated_at Trigger Function
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
--- 3. Core Users Table
-CREATE TABLE IF NOT EXISTS users (
+-- 4. Core Users Table
+CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -31,13 +42,16 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Case-insensitive unique constraint on email
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower ON users (LOWER(email));
-CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
-CREATE INDEX IF NOT EXISTS idx_users_status ON users (status);
+CREATE UNIQUE INDEX idx_users_email_lower ON users (LOWER(email));
+CREATE INDEX idx_users_role ON users (role);
+CREATE INDEX idx_users_status ON users (status);
 
--- 4. Profiles Table (Public Identity & Role-Specific Metadata; completed_deals_count removed)
-CREATE TABLE IF NOT EXISTS profiles (
+CREATE TRIGGER trg_users_updated_at
+BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- 5. Profiles Table (completed_deals_count removed)
+CREATE TABLE profiles (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     display_name VARCHAR(150) NOT NULL,
     phone VARCHAR(50),
@@ -48,42 +62,56 @@ CREATE TABLE IF NOT EXISTS profiles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 5. Active Sessions Table (One row per login / device; sid is stable across rotations)
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TRIGGER trg_profiles_updated_at
+BEFORE UPDATE ON profiles
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- 6. Active Sessions Table (One row per login / device)
+CREATE TABLE sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     device_label VARCHAR(100),
     ip VARCHAR(45),
     user_agent TEXT,
+    absolute_expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '90 days'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_used_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions (user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_active ON sessions (id) WHERE revoked_at IS NULL;
+CREATE INDEX idx_sessions_user_active ON sessions (user_id) WHERE revoked_at IS NULL;
 
--- 6. Refresh Tokens Table (Many rows per session; records token rotation and child lineage)
-CREATE TABLE IF NOT EXISTS refresh_tokens (
+-- 7. Refresh Tokens Table (Many rows per session; records token rotation and child lineage)
+CREATE TABLE refresh_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
-    token_hash VARCHAR(64) NOT NULL,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
     consumed_at TIMESTAMPTZ,
     replaced_by_token_id UUID REFERENCES refresh_tokens(id) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_session_id ON refresh_tokens (session_id);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens (token_hash);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_active ON refresh_tokens (token_hash) WHERE consumed_at IS NULL;
+CREATE INDEX idx_refresh_tokens_session_id ON refresh_tokens (session_id);
 
--- 7. HMAC OTP Verification Records Table (Bound to Purpose & Identifier)
-CREATE TABLE IF NOT EXISTS otps (
+-- 8. Single-Use Password Reset Tokens Table (Database-enforced single consumption)
+CREATE TABLE password_reset_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    identifier VARCHAR(255) NOT NULL, -- normalized email or user_id UUID string
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    consumed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX idx_password_reset_active ON password_reset_tokens (user_id) WHERE consumed_at IS NULL;
+
+-- 9. HMAC OTP Verification Records Table (Bound to user_id and purpose)
+CREATE TABLE otps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     purpose VARCHAR(32) NOT NULL CHECK (purpose IN ('signup_verify', 'login_otp', 'password_reset')),
-    code_hash VARCHAR(64) NOT NULL,   -- HMAC-SHA256(code + ":" + purpose + ":" + identifier, OTP_PEPPER)
+    code_hash VARCHAR(64) NOT NULL,
     attempts_count INT NOT NULL DEFAULT 0,
     max_attempts INT NOT NULL DEFAULT 5,
     expires_at TIMESTAMPTZ NOT NULL,
@@ -91,35 +119,50 @@ CREATE TABLE IF NOT EXISTS otps (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_otps_identifier_purpose ON otps (LOWER(identifier), purpose);
-CREATE INDEX IF NOT EXISTS idx_otps_active ON otps (LOWER(identifier), purpose, consumed_at, expires_at);
+CREATE UNIQUE INDEX idx_otps_user_purpose_active ON otps (user_id, purpose) WHERE consumed_at IS NULL;
 
--- 8. Authentication Attempts & Exponential Backoff / Escalating Lockout Table
--- Note: Lockout state is keyed by normalized email ONLY (works for non-existent accounts). Per-IP limiting is handled by a separate rate limiter.
-CREATE TABLE IF NOT EXISTS auth_attempts (
+-- 10. Authentication Attempts (Keyed by normalized email ONLY; IP limiting handled separately)
+CREATE TABLE auth_attempts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     normalized_email VARCHAR(255) NOT NULL,
     failed_count INT NOT NULL DEFAULT 0,
-    lockout_count INT NOT NULL DEFAULT 0, -- tracks repeated lockouts for escalating backoff (15m, 30m, 60m)
+    lockout_count INT NOT NULL DEFAULT 0,
     locked_until TIMESTAMPTZ,
     last_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_auth_attempts_normalized_email ON auth_attempts (LOWER(normalized_email));
-CREATE INDEX IF NOT EXISTS idx_auth_attempts_locked_until ON auth_attempts (locked_until);
+CREATE UNIQUE INDEX idx_auth_attempts_normalized_email ON auth_attempts (LOWER(normalized_email));
+CREATE INDEX idx_auth_attempts_locked_until ON auth_attempts (locked_until);
 
--- 9. System Audit Logs Table
-CREATE TABLE IF NOT EXISTS audit_logs (
+-- 11. System Audit Logs Table (With actor_id, target_type, target_id)
+CREATE TABLE audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
     action VARCHAR(100) NOT NULL,
+    target_type VARCHAR(50),
+    target_id VARCHAR(100),
     details JSONB NOT NULL DEFAULT '{}'::jsonb,
     ip VARCHAR(45),
     user_agent TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs (action);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs (user_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs (created_at DESC);
+CREATE INDEX idx_audit_logs_actor_id ON audit_logs (actor_id);
+CREATE INDEX idx_audit_logs_action ON audit_logs (action);
+CREATE INDEX idx_audit_logs_created_at ON audit_logs (created_at DESC);
+
+-- 12. Security: Enable Row Level Security (RLS) on all tables (No policies)
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE refresh_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE password_reset_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE otps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE auth_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Revoke all permissions from PostgREST public client roles
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
+REVOKE ALL ON ALL ROUTINES IN SCHEMA public FROM anon, authenticated;
